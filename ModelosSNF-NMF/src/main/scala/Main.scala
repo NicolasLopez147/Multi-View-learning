@@ -19,13 +19,6 @@ object Main {
     /*val modelo = Trainer.jnmf(Array(expMatriz.t,methyMatriz.t,mirnaMatriz.t),r = 50)
     println(modelo.cost(Array(expMatriz.t,methyMatriz.t,mirnaMatriz.t)))*/
 
-    /*val row = 100
-    val u = DenseMatrix.rand[Double](row, 4000)
-    val v = DenseMatrix.rand[Double](row, 2000)
-    val y = DenseMatrix.rand[Double](row, 2500)
-
-    val model = Trainer.jnmf(Array(u, v, y), r = 20)
-    println(model.cost(Array(u, v, y)))*/
 
   }
 }
