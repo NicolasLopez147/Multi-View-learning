@@ -1,6 +1,7 @@
 import breeze.linalg.{DenseMatrix, sum}
 import breeze.numerics._
 import org.apache.spark.{SparkConf, SparkContext}
+import breeze.linalg.DenseVector
 
 object Trainer {
   def jnmf(xs: Array[DenseMatrix[Double]], r: Int = 2, n: Int = 50000, eps: Double = 0.0001, epsEval: Int = 1): JNMFModel = {
@@ -44,6 +45,19 @@ object Trainer {
       }
       b
     }
+  }
+
+  def clustering(jnmf: JNMFModel): (DenseMatrix[Double], Seq[Int]) = {
+    val w = jnmf.w
+    val labels = DenseVector.zeros[Int](w.rows)
+    for(i <- 0 until w.rows) {
+      val max = w(i, ::).inner.toArray.max
+      for(j <- 0 until w.cols) {
+        if(w(i, j) == max)
+          labels(i) = j+1
+      }
+    }
+    (w, labels.toArray.toSeq)
   }
 }
 
