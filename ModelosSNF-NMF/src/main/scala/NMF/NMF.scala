@@ -49,24 +49,19 @@ object Trainer {
       b
     }
   }
-
-  def clustering(jnmf: JNMFModel): (DenseMatrix[Double], Seq[Int]) = {
-    val w = jnmf.w
-    val labels = DenseVector.zeros[Int](w.rows)
-    for(i <- 0 until w.rows) {
-      val max = w(i, ::).inner.toArray.max
-      for(j <- 0 until w.cols) {
-        if(w(i, j) == max)
-          labels(i) = j+1
-      }
-    }
-    (w, labels.toArray.toSeq)
-  }
 }
 
 case class JNMFModel(w: DenseMatrix[Double], hs: Array[DenseMatrix[Double]]) {
   def inverse(): Array[DenseMatrix[Double]] = {
     hs.map(w * _)
+  }
+
+  def clustering(): (DenseMatrix[Double], Seq[Int]) = {
+    val labels = (0 until w.rows).foldLeft(List[Int]())((list_acc, row) => {
+      w(row, ::).toArray.zipWithIndex.maxBy(_._1)._2 :: list_acc  
+    }).reverse
+    (w, labels)
+    //(w, labels.toArray.toSeq)
   }
 
   def cost(xs: Array[DenseMatrix[Double]]): Double = {

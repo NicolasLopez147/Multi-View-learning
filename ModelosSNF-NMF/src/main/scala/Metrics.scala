@@ -87,8 +87,9 @@ object Metrics {
     mean(s)
   }
 
-  def logRank(data: Seq[Seq[Double]], labels: Seq[Int]) = {
-  }
+  /*def logRank(data: Seq[Seq[Double]], labels: Seq[Int]) = {
+
+  }*/
 
   def centroidMSE(centroid: Array[Double], data: Array[Array[Double]]): Double = {
     val n = data.length
@@ -97,7 +98,7 @@ object Metrics {
     sumOfSquaredDistances / n
   }
 
-  def psnr(dataDense: DenseMatrix[Double], labels: Array[Int]): Double = {
+  def psnr(dataDense: DenseMatrix[Double], labels: Seq[Int]): Double = {
     val k = labels.toSet.size
 
     var data: List[List[Double]] = List()
@@ -120,7 +121,19 @@ object Metrics {
   }
 
 
-  def runtime() = {}
+  def runtime(dataset: Seq[DenseMatrix[Double]]) = {
+    val start = System.nanoTime()
+    val result = Trainer.jnmf(dataset.toArray, dataset(0).rows)
+    val end = System.nanoTime()
+    println("JNMF Time result:")
+    println((end - start) / 1000000000.0)
+
+    val start = System.nanoTime()
+    val result = new SNF(dataset(0), dataset(1), dataset(2)).aplicarSNF(/*parametros*/)
+    val end = System.nanoTime()
+    println("SNF Time result:")
+    println((end - start) / 1000000000.0)
+  }
 }
 
 
