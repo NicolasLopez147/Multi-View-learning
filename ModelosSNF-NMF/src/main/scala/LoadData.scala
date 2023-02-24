@@ -1,16 +1,12 @@
 import breeze.io.CSVReader
 import breeze.linalg._
 import breeze.numerics.NaN
-import breeze.stats.mean
 
 import java.io.{FileInputStream, InputStreamReader}
 
 object LoadData {
 
   private val MISSING_VALUE = 0
-
-  private var outliers_removed: Int = 0
-  private var missing_data_imputed: Int = 0
 
   def tratarDatos(types: Seq[String]): (DenseMatrix[Double],DenseMatrix[Double],DenseMatrix[Double]) = {
 

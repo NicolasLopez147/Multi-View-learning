@@ -1,13 +1,9 @@
 package SNF
 
 import breeze.linalg.{DenseMatrix, InjectNumericOps}
-import breeze.stats.{mean, stddev}
-
-import scala.util.control.Breaks.break
-
 
 class SNF (val exp:DenseMatrix[Double],val methy:DenseMatrix[Double],val mirna:DenseMatrix[Double]){
-  var contadorA = 0
+
   /*private def normalizar(m: DenseMatrix[Double]): DenseMatrix[Double] = {
     val avg = mean(m)
     val dev = stddev(m)
@@ -174,20 +170,17 @@ class SNF (val exp:DenseMatrix[Double],val methy:DenseMatrix[Double],val mirna:D
     var methyKernelCompleto = calcularKernelCompleto(methyKernel)
     var mirnaKernelCompleto = calcularKernelCompleto(mirnaKernel)
 
-
-
     // Calcular matriz kernel dispersa
     val expKernelDispersa = calcularKernelDispersa(expKernel, porcentaje)
     val methyKernelDispersa = calcularKernelDispersa(methyKernel, porcentaje)
     val mirnaKernelDispersa = calcularKernelDispersa(mirnaKernel, porcentaje)
-    (expKernelDispersa,methyKernelDispersa,mirnaKernelDispersa,mirnaKernelDispersa)
 
     // Calcular matriz estatus
     var expMatrizEstatus = DenseMatrix.zeros[Double](expKernelCompleto.rows, expKernelCompleto.cols)
     var methyMatrizEstatus = DenseMatrix.zeros[Double](methyKernelCompleto.rows, methyKernelCompleto.cols)
     var mirnaMatrizEstatus = DenseMatrix.zeros[Double](mirnaKernelCompleto.rows, mirnaKernelCompleto.cols)
 
-    for (i <- 1 to iteraciones) {
+    for (_ <- 1 to iteraciones) {
       expMatrizEstatus = calcularMatrizEstatus(methyKernelCompleto, mirnaKernelCompleto, expKernelDispersa)
       methyMatrizEstatus = calcularMatrizEstatus(expKernelCompleto, mirnaKernelCompleto, methyKernelDispersa)
       mirnaMatrizEstatus = calcularMatrizEstatus(methyKernelCompleto, expKernelCompleto, mirnaKernelDispersa)
