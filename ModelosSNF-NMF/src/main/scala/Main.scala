@@ -1,5 +1,7 @@
 import SNF.SNF
 
+import scala.util.control.Breaks.break
+
 object Main {
   def main(args: Array[String]): Unit = {
     // Cargar datos
@@ -7,13 +9,15 @@ object Main {
 
 
     // Implementar model SNF
-    val modeloSNF = new SNF(exp = expMatriz, methy = methyMatriz, mirna = mirnaMatriz)
+    /*val modeloSNF = new SNF(exp = expMatriz, methy = methyMatriz, mirna = mirnaMatriz)
     val (matrizEstatusPromedio,expMatrizEstatus,methyMatrizEstatus,mirnaMatrizEstatus) = modeloSNF.aplicarSNF(m = 0.5,porcentaje = 5,iteraciones = 20)
 
-    for (elemento <- matrizEstatusPromedio.activeIterator) println(elemento)
-
+    for (elemento <- matrizEstatusPromedio.activeIterator) println(elemento)*/
+    var contador = 0
     //Implementar modelo NMF
-    /*val modeloNMF = Trainer.jnmf(Array(expMatriz.t,methyMatriz.t,mirnaMatriz.t),r = 50)
-    println(modeloNMF.cost(Array(expMatriz.t,methyMatriz.t,mirnaMatriz.t)))*/
+
+
+    val modeloNMF = Trainer.jnmf(Array(expMatriz.t,methyMatriz.t,mirnaMatriz.t),r = 50)
+    println(modeloNMF.cost(Array(expMatriz.t,methyMatriz.t,mirnaMatriz.t)))
   }
 }
