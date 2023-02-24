@@ -1,7 +1,4 @@
-import LoadData.DataMa
 import SNF.SNF
-import breeze.linalg.DenseMatrix
-import breeze.numerics.round
 
 object Main {
   def main(args: Array[String]): Unit = {
@@ -16,9 +13,7 @@ object Main {
     for (elemento <- matrizEstatusPromedio.activeIterator) println(elemento)
 
     //Implementar modelo NMF
-    /*val modelo = Trainer.jnmf(Array(expMatriz.t,methyMatriz.t,mirnaMatriz.t),r = 50)
-    println(modelo.cost(Array(expMatriz.t,methyMatriz.t,mirnaMatriz.t)))*/
-
-
+    /*val modeloNMF = Trainer.jnmf(Array(expMatriz.t,methyMatriz.t,mirnaMatriz.t),r = 50)
+    println(modeloNMF.cost(Array(expMatriz.t,methyMatriz.t,mirnaMatriz.t)))*/
   }
 }

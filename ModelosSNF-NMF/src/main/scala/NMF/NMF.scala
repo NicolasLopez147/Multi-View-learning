@@ -17,8 +17,6 @@ object Trainer {
           case ((num, den), (h, x)) => (num :+= x * h.t, den :+= h * h.t)
         }
       val nw = w *:* (num /:/ (w * den))
-      for (ele <- nw.iterator)print(ele)
-      println()
       if (i % epsEval == 0) {
         var currCost = JNMFModel(w, hs).cost(xs)
         val cmp = (cost-currCost)/currCost
