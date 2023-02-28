@@ -58,7 +58,7 @@ case class JNMFModel(w: DenseMatrix[Double], hs: Array[DenseMatrix[Double]]) {
 
   def clustering(): (DenseMatrix[Double], Seq[Int]) = {
     val labels = (0 until w.rows).foldLeft(List[Int]())((list_acc, row) => {
-      w(row, ::).toArray.zipWithIndex.maxBy(_._1)._2 :: list_acc  
+      w(row, ::).t.toArray.zipWithIndex.maxBy(_._1)._2 :: list_acc  
     }).reverse
     (w, labels)
     //(w, labels.toArray.toSeq)
