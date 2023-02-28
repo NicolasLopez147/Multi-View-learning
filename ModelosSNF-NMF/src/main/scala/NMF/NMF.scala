@@ -3,30 +3,30 @@ import breeze.numerics._
 
 object Trainer {
 
-  def tratarDatos(xs: Array[DenseMatrix[Double]]): Array[DenseMatrix[Double]] = {
+  def tratarDatos(xs: Array[DenseMatrix[Double]],remplazo: Double): Array[DenseMatrix[Double]] = {
     for (i <- 0 until xs(0).rows) {
       for (j <- 0 until xs(0).cols) {
         if (xs(0)(i,j) == 0)
-          xs(0)(i,j) = 0.00000000001
+          xs(0)(i,j) = remplazo
       }
     }
     for (i <- 0 until xs(1).rows) {
       for (j <- 0 until xs(1).cols) {
         if (xs(1)(i,j) == 0) {
-          xs(1)(i,j) = 0.00000000001
+          xs(1)(i,j) = remplazo
         }
       }
     }
     for (i <- 0 until xs(2).rows) {
       for (j <- 0 until xs(2).cols) {
         if (xs(2)(i,j) == 0)
-          xs(2)(i,j) = 0.00000000001
+          xs(2)(i,j) = remplazo
       }
     }
     xs
   }
-  def jnmf(xss: Array[DenseMatrix[Double]], r: Int = 2 , n: Int = 50000, eps: Double = 0.001, epsEval: Int = 1): JNMFModel = {
-    val xs = tratarDatos(xss)
+  def jnmf(xss: Array[DenseMatrix[Double]] , r: Int = 2 ,remplazo : Double = 0.00000000001, n: Int = 50000, eps: Double = 0.001, epsEval: Int = 1): JNMFModel = {
+    val xs = tratarDatos(xss,remplazo)
     val hs0 = xs.map(x => DenseMatrix.rand[Double](r, x.cols))
     val w0 = DenseMatrix.rand[Double](xs(0).rows, r)
     val cost0 = JNMFModel(w0, hs0).cost(xs)

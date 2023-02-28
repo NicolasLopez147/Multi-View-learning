@@ -10,18 +10,16 @@ object LoadData {
 
   def tratarDatos(types: Seq[String]): (DenseMatrix[Double],DenseMatrix[Double],DenseMatrix[Double]) = {
 
+    println("CARGANDO LOS DATOS")
+
     val cnts = loadRappoport(types)
     val (vista1 ,vista2, vista3 ) = igualadorEstandarizador(cnts(0)(0),cnts(0)(1),cnts(0)(2))
-
-    /*val vista1Final = missing_data_imputation(outlier_removal(vista1))
-    val vista2Final = missing_data_imputation(outlier_removal(vista2))
-    val vista3Final = missing_data_imputation(outlier_removal(vista3))*/
 
     val vista1Final = outlier_removal(vista1)
     val vista2Final = outlier_removal(vista2)
     val vista3Final = outlier_removal(vista3)
 
-
+    println("DATOS CARGADOS Y TRATADOS")
     (vista1Final,vista2Final,vista3Final)
   }
 
@@ -64,43 +62,6 @@ object LoadData {
     }
     m_res
   }
-
-  /*private def outlier_removal(m: DenseMatrix[Double]): DenseMatrix[Double] = {
-    var count_missing_values = 0
-    var m_res = m.copy
-    for (i <- 0 until m.rows) {
-      for (j <- 0 until m.cols) {
-        if (m(i, j) == MISSING_VALUE) {
-          count_missing_values = count_missing_values + 1
-        }
-      }
-      if (count_missing_values > m.cols * 0.2) {
-        m_res = DenseMatrix.vertcat(
-          m_res(0 until (i - outliers_removed), ::),
-          m_res((i + 1 - outliers_removed-1) until m.rows, ::)
-        )
-        outliers_removed = outliers_removed + 1
-      }
-      count_missing_values = 0
-    }
-    m_res
-  }
-
-  private def missing_data_imputation(m: DenseMatrix[Double]): DenseMatrix[Double] = {
-    val m_copy = m.copy
-    var temp: DenseMatrix[Double] = null
-    for (i <- 0 until m.rows) {
-      for (j <- 0 until m.cols) {
-        if (m(i, j) == MISSING_VALUE) {
-          temp =
-            DenseMatrix.vertcat(m(0 until i, ::), m((i + 1) until m.rows, ::))
-          m_copy(i, j) = mean(temp(::, j))
-          missing_data_imputed = missing_data_imputed + 1
-        }
-      }
-    }
-    m_copy
-  }*/
 
   private def loadRappoport(types: Seq[String]): Seq[Seq[DataMa]] = {
 
