@@ -164,7 +164,7 @@ class SNF (val exp:DenseMatrix[Double],val methy:DenseMatrix[Double],val mirna:D
 
     return matrizEstatus
   }
-  def aplicarSNF(m:Double,porcentaje:Double,iteraciones:Integer): (DenseMatrix[Double],DenseMatrix[Double],DenseMatrix[Double],DenseMatrix[Double]) = {
+  def aplicarSNF(m:Double,porcentaje:Double,iteraciones:Integer): (DenseMatrix[Double],DenseMatrix[Double],DenseMatrix[Double],DenseMatrix[Double],DenseMatrix[Double],DenseMatrix[Double],DenseMatrix[Double]) = {
 
     val expKernel = calcularKernel(calcularDistancia(normalizar(exp).t),m,porcentaje)
     val methyKernel = calcularKernel(calcularDistancia(normalizar(methy).t),m,porcentaje)
@@ -199,6 +199,6 @@ class SNF (val exp:DenseMatrix[Double],val methy:DenseMatrix[Double],val mirna:D
       mirnaKernelCompleto = mirnaMatrizEstatus
     }
     val matrizEstatusPromedio = (expMatrizEstatus+methyMatrizEstatus+mirnaMatrizEstatus)*0.3333
-    return (matrizEstatusPromedio,expMatrizEstatus,methyMatrizEstatus,mirnaMatrizEstatus)
+    return (matrizEstatusPromedio,expMatrizEstatus,methyMatrizEstatus,mirnaMatrizEstatus, expKernelDispersa,methyKernelDispersa,mirnaKernelDispersa)
   }
 }
