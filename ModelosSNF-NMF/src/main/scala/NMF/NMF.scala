@@ -1,3 +1,4 @@
+package NMF
 import breeze.linalg.{DenseMatrix, sum}
 import breeze.numerics._
 import org.apache.spark.{SparkConf, SparkContext}
@@ -18,12 +19,12 @@ object Trainer {
           case ((num, den), (h, x)) => (num :+= x * h.t, den :+= h * h.t)
         }
       val nw = w *:* (num /:/ (w * den))
-      for (ele <- nw.iterator)print(ele)
-      println()
+      //for (ele <- nw.iterator)print(ele)
+      //println()
       if (i % epsEval == 0) {
         var currCost = JNMFModel(w, hs).cost(xs)
         val cmp = (cost-currCost)/currCost
-        println(s"$i: $currCost $cost $cmp")
+        //println(s"$i: $currCost $cost $cmp")
         if (cmp <= eps && i > 1) {
           None
         } else {

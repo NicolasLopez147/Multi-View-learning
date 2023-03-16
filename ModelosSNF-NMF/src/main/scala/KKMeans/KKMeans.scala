@@ -2,6 +2,7 @@ import breeze.linalg._
 import breeze.numerics._
 import breeze.stats._
 import scala.util.Random
+import scala.util.control.Breaks._
 
 object KKMeans {
   var kernel_function = (x: DenseVector[Double], y: DenseVector[Double]) => (x dot y);
@@ -46,7 +47,10 @@ object KKMeans {
       // Compute probability of choosing data point j as centroid i
       val probabilities = distances / sum(distances)
       val cumulative_probabilities = probabilities.scanLeft(0.0)(_ + _)
-      val r = Random.nextDouble()
+      var r = Random.nextDouble()
+      while(r == 1.0){
+        r = Random.nextDouble()
+      }
       centroids(i, ::) := data(cumulative_probabilities.toArray.indexWhere(_ > r), ::)
     }
 
@@ -91,13 +95,11 @@ object KKMeans {
         }
         new_labels(i) = argmin(distances)
       }
-
       if(new_labels == labels) {
         iterations = max_iterations
-      } else {
-        labels := new_labels
-        iterations += 1
       }
+      labels := new_labels
+      iterations += 1
     }
     labels.toArray.toList
   }

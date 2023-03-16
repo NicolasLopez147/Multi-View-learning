@@ -3,6 +3,7 @@ import breeze.linalg._
 import breeze.numerics._
 import breeze.stats._
 import SNF.SNF
+import NMF.Trainer
 
 object Metrics {
 
@@ -21,22 +22,22 @@ object Metrics {
   }
 
   def davies_bouldin_index(dataDense: DenseMatrix[Double], labels: Seq[Int]): Double = {
-    val k = labels.toSet.size
+    val k = labels.max
     var data: List[List[Double]] = dense_to_list(dataDense)
     
     val clusters = (0 until k).map { i =>
-      val points = data.zip(labels).collect { case (x, j) if j == (i+1) => x }
+      val points = data.zip(labels).collect { case (x, j) if j == i => x }
       (i, points, centroid(points))
     }
 
     val s = clusters.map { case (_, points, c) =>
-      sqrt(points.map(x => pow(euclidean_distance(x, c), 2)).sum / points.size)
+      if (points.isEmpty) 0.0 else points.map(x => euclidean_distance(x, c)).sum / points.size
     }
 
     val m = for {
       (i, pi, ci) <- clusters
       (j, pj, cj) <- clusters
-      if i != j
+      if i != j && !pi.isEmpty && !pj.isEmpty
     } yield (i, j, (s(i) + s(j) / euclidean_distance(ci, cj)))
 
     m.groupBy(_._1).mapValues(_.map(_._3).max).values.sum/k
@@ -93,62 +94,64 @@ object Metrics {
     mean(s)
   }
 
-  
-
-  def centroidMSE(centroid: Array[Double], data: Array[Array[Double]]): Double = {
-    val n = data.length
-    val distances = data.map(datum => euclidean_distance(centroid, datum))
-    val sumOfSquaredDistances = distances.map(d => math.pow(d, 2)).sum
-    sumOfSquaredDistances / n
-  }
 
   def psnr(dataDense: DenseMatrix[Double], labels: Seq[Int]): Double = {
-    val k = labels.toSet.size
+    val k = labels.max
 
     var data: List[List[Double]] = dense_to_list(dataDense)
 
-    val centroids = (0 until k).map { i =>
-      val points = data.zip(labels).collect { case (x, j) if j == (i+1) => x }
-      (centroid(points))
+    val clusters = (0 until k).map { i =>
+      val points = data.zip(labels).collect { case (x, j) if j == i => x }
+      (i, points, centroid(points))
     }
-    val mseValues = centroids.indices.map { i =>
-      val centroid = centroids(i)
-      val dataForCentroid = data.zip(labels).filter { case (_, label) => label == i }.map(_._1)
-      centroidMSE(centroid.toArray, dataForCentroid.toArray.map(_.toArray))
+
+    val mseValues = clusters.map { case (_, points, c) =>
+      if (points.isEmpty) 0.0 else points.map(x => pow(euclidean_distance(x, c), 2)).sum
     }
-    val maxSignal = data.map(_.max).max
+
+    var distances : List[Double] = List() 
+    
+    for(i <- 0 until dataDense.rows){
+      for(j <- i until dataDense.rows){
+        distances = distances :+ euclidean_distance(data(i), data(j))
+      }
+    }
+
+    val maxSignal = distances.max
+
     val mseAverage = mseValues.sum / mseValues.length
+
     10 * log10(math.pow(maxSignal, 2) / mseAverage)
   }
 
   def SSW(dataDense: DenseMatrix[Double], labels: Seq[Int]): Double = {
-    val k = labels.toSet.size
+    val k = labels.max
     var data: List[List[Double]] = dense_to_list(dataDense)
 
     val clusters = (0 until k).map { i =>
-      val points = data.zip(labels).collect { case (x, j) if j == (i+1) => x }
+      val points = data.zip(labels).collect { case (x, j) if j == i => x }
       (i, points, centroid(points))
     }
 
     val s = clusters.map { case (_, points, c) =>
-      points.map(x => pow(euclidean_distance(x, c), 2)).sum
+      if (points.isEmpty) 0.0 else points.map(x => pow(euclidean_distance(x, c), 2)).sum
     }
 
     s.sum
   }
 
   def SSB(dataDense: DenseMatrix[Double], labels: Seq[Int]): Double = {
-    val k = labels.toSet.size
+    val k = labels.max
     var data: List[List[Double]] = dense_to_list(dataDense)
     val general_centroid = centroid(data)    
 
     val clusters = (0 until k).map { i =>
-      val points = data.zip(labels).collect { case (x, j) if j == (i+1) => x }
+      val points = data.zip(labels).collect { case (x, j) if j == i => x }
       (i, points, centroid(points))
     }
 
     val s = clusters.map { case (_, points, c) =>
-      points.length * pow(euclidean_distance(c, general_centroid), 2)
+      if (points.isEmpty) 0.0 else points.length * pow(euclidean_distance(c, general_centroid), 2)
     }
 
     s.sum

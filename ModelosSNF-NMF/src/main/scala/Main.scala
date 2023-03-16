@@ -1,5 +1,6 @@
 import LoadData.DataMa
 import SNF.SNF
+import NMF.Trainer
 import breeze.linalg.DenseMatrix
 import breeze.numerics.round
 
@@ -8,13 +9,34 @@ object Main {
     // Cargar datos
     val (expMatriz,methyMatriz,mirnaMatriz) = LoadData.tratarDatos(Seq("aml"))
 
-    KKMeans.set_kernel_function("polynomial")
     // Implementar model SNF
     val modeloSNF = new SNF(exp = expMatriz, methy = methyMatriz, mirna = mirnaMatriz)
     val (matrizEstatusPromedio,expMatrizEstatus,methyMatrizEstatus,mirnaMatrizEstatus, expKernelDispersa,methyKernelDispersa,mirnaKernelDispersa) = modeloSNF.aplicarSNF(m = 0.5,porcentaje = 5,iteraciones = 20)
+    /*val W_matrix = Trainer.jnmf(Array(expMatriz.t,methyMatriz.t,mirnaMatriz.t), r = 30).w
+    val exp_w_labels = KKMeans.kernel_k_means(W_matrix, W_matrix.cols, 100)*/
+
+    val exp_est_labels = KKMeans.kernel_k_means(expMatrizEstatus, 30, 100)
+    val exp_kernel_labels = KKMeans.kernel_k_means(expKernelDispersa, 30, 100)
+    /*
+    println("Metrica \t NMF")
+    print("Silhouette \t")
+    println(Metrics.silhouette(W_matrix, exp_w_labels))
+    print("Davies-Bouldin \t")
+    println(Metrics.davies_bouldin_index(W_matrix, exp_w_labels))
+    print("PSNR \t")
+    println(Metrics.psnr(W_matrix, exp_w_labels))
+    print("Ball-Hall \t")
+    println(Metrics.ball_hall(W_matrix, exp_w_labels))
+    print("Calinski-Harabasz \t")
+    println(Metrics.calinski_harabasz(W_matrix, exp_w_labels))
+    print("Hartigan \t")
+    println(Metrics.hartigan(W_matrix, exp_w_labels))
+    print("Xu \t")
+    println(Metrics.xu(W_matrix, exp_w_labels))
+    */
     
-    val exp_est_labels = KKMeans.kernel_k_means(expMatrizEstatus, 20, 100)
-    val exp_kernel_labels = KKMeans.kernel_k_means(expKernelDispersa, 20, 100)
+
+
     println("Metrica \t Kernel \t Estatus")
     print("Silhouette \t")
     print(Metrics.silhouette(expMatrizEstatus, exp_est_labels))
@@ -44,6 +66,7 @@ object Main {
     print(Metrics.xu(expMatrizEstatus, exp_est_labels))
     print("\t")
     println(Metrics.xu(expKernelDispersa, exp_kernel_labels))
+
 
     //Implementar modelo NMF
     /*val modelo = Trainer.jnmf(Array(expMatriz.t,methyMatriz.t,mirnaMatriz.t),r = 50)
