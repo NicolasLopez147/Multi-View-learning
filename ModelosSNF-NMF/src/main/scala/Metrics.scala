@@ -1,9 +1,18 @@
-import scala.math.{pow, sqrt}
+import scala.math.{pow, sqrt, log}
 import breeze.linalg._
 import breeze.numerics._
 import breeze.stats._
+import SNF.SNF
+import NMF.Trainer
 
 object Metrics {
+
+  def dense_to_list(data: DenseMatrix[Double]): List[List[Double]] = {
+    (0 until data.rows).foldLeft(List[List[Double]]())((acc, x) => {
+      acc :+ data(x, ::).t.toArray.toList
+    })
+  }
+
   def euclidean_distance(x: Seq[Double], y: Seq[Double]): Double = {
     sqrt(x.zip(y).map { case (a, b) => pow(a - b, 2) }.sum)
   }
@@ -13,24 +22,22 @@ object Metrics {
   }
 
   def davies_bouldin_index(dataDense: DenseMatrix[Double], labels: Seq[Int]): Double = {
-    val k = labels.toSet.size
-    var data: List[List[Double]] = List()
-    for (i <- 0 until dataDense.rows) {
-      data = data :+ dataDense(i,::).t.toArray.toList
-    }
+    val k = labels.max
+    var data: List[List[Double]] = dense_to_list(dataDense)
+    
     val clusters = (0 until k).map { i =>
-      val points = data.zip(labels).collect { case (x, j) if j == (i+1) => x }
+      val points = data.zip(labels).collect { case (x, j) if j == i => x }
       (i, points, centroid(points))
     }
 
     val s = clusters.map { case (_, points, c) =>
-      sqrt(points.map(x => pow(euclidean_distance(x, c), 2)).sum / points.size)
+      if (points.isEmpty) 0.0 else points.map(x => euclidean_distance(x, c)).sum / points.size
     }
 
     val m = for {
       (i, pi, ci) <- clusters
       (j, pj, cj) <- clusters
-      if i != j
+      if i != j && !pi.isEmpty && !pj.isEmpty
     } yield (i, j, (s(i) + s(j) / euclidean_distance(ci, cj)))
 
     m.groupBy(_._1).mapValues(_.map(_._3).max).values.sum/k
@@ -87,40 +94,100 @@ object Metrics {
     mean(s)
   }
 
-  def logRank(data: Seq[Seq[Double]], labels: Seq[Int]) = {
-  }
 
-  def centroidMSE(centroid: Array[Double], data: Array[Array[Double]]): Double = {
-    val n = data.length
-    val distances = data.map(datum => euclidean_distance(centroid, datum))
-    val sumOfSquaredDistances = distances.map(d => math.pow(d, 2)).sum
-    sumOfSquaredDistances / n
-  }
+  def psnr(dataDense: DenseMatrix[Double], labels: Seq[Int]): Double = {
+    val k = labels.max
 
-  def psnr(dataDense: DenseMatrix[Double], labels: Array[Int]): Double = {
-    val k = labels.toSet.size
+    var data: List[List[Double]] = dense_to_list(dataDense)
 
-    var data: List[List[Double]] = List()
-    for (i <- 0 until dataDense.rows) {
-      data = data :+ dataDense(i,::).t.toArray.toList
+    val clusters = (0 until k).map { i =>
+      val points = data.zip(labels).collect { case (x, j) if j == i => x }
+      (i, points, centroid(points))
     }
 
-    val centroids = (0 until k).map { i =>
-      val points = data.zip(labels).collect { case (x, j) if j == (i+1) => x }
-      (centroid(points))
+    val mseValues = clusters.map { case (_, points, c) =>
+      if (points.isEmpty) 0.0 else points.map(x => pow(euclidean_distance(x, c), 2)).sum
     }
-    val mseValues = centroids.indices.map { i =>
-      val centroid = centroids(i)
-      val dataForCentroid = data.zip(labels).filter { case (_, label) => label == i }.map(_._1)
-      centroidMSE(centroid.toArray, dataForCentroid.toArray.map(_.toArray))
+
+    var distances : List[Double] = List() 
+    
+    for(i <- 0 until dataDense.rows){
+      for(j <- i until dataDense.rows){
+        distances = distances :+ euclidean_distance(data(i), data(j))
+      }
     }
-    val maxSignal = data.map(_.max).max
+
+    val maxSignal = distances.max
+
     val mseAverage = mseValues.sum / mseValues.length
-    10 * math.log10(math.pow(maxSignal, 2) / mseAverage)
+
+    10 * log10(math.pow(maxSignal, 2) / mseAverage)
+  }
+
+  def SSW(dataDense: DenseMatrix[Double], labels: Seq[Int]): Double = {
+    val k = labels.max
+    var data: List[List[Double]] = dense_to_list(dataDense)
+
+    val clusters = (0 until k).map { i =>
+      val points = data.zip(labels).collect { case (x, j) if j == i => x }
+      (i, points, centroid(points))
+    }
+
+    val s = clusters.map { case (_, points, c) =>
+      if (points.isEmpty) 0.0 else points.map(x => pow(euclidean_distance(x, c), 2)).sum
+    }
+
+    s.sum
+  }
+
+  def SSB(dataDense: DenseMatrix[Double], labels: Seq[Int]): Double = {
+    val k = labels.max
+    var data: List[List[Double]] = dense_to_list(dataDense)
+    val general_centroid = centroid(data)    
+
+    val clusters = (0 until k).map { i =>
+      val points = data.zip(labels).collect { case (x, j) if j == i => x }
+      (i, points, centroid(points))
+    }
+
+    val s = clusters.map { case (_, points, c) =>
+      if (points.isEmpty) 0.0 else points.length * pow(euclidean_distance(c, general_centroid), 2)
+    }
+
+    s.sum
+  }
+
+  def ball_hall(data: DenseMatrix[Double], labels: Seq[Int]) : Double = {
+    SSW(data, labels)/labels.toSet.size
+  }
+
+  def calinski_harabasz(data: DenseMatrix[Double], labels: Seq[Int]) : Double = {
+    val k = labels.toSet.size
+    (SSB(data, labels)/(k-1))/(SSW(data, labels)/(data.rows-k))
+  }
+
+  def hartigan(data: DenseMatrix[Double], labels: Seq[Int]) : Double = {
+    log(SSB(data, labels)/SSW(data, labels))
+  }
+
+  def xu(data: DenseMatrix[Double], labels: Seq[Int]) : Double = {
+    data.cols*log(sqrt(SSW(data, labels)/(data.cols*pow(data.rows, 2)))) + log(labels.toSet.size)
   }
 
 
-  def runtime() = {}
+  def runtime(dataset: Seq[DenseMatrix[Double]]) = {
+    var start = System.nanoTime()
+    var result = Trainer.jnmf(dataset.toArray, dataset(0).rows)
+    var end = System.nanoTime()
+    println("JNMF Time result:")
+    println((end - start) / 1000000000.0)
+
+    /*start = System.nanoTime()
+    result = new SNF(dataset(0), dataset(1), dataset(2)).aplicarSNF(/*parametros*/)
+    end = System.nanoTime()
+    println("SNF Time result:")
+    println((end - start) / 1000000000.0)*/
+  }
 }
 
 

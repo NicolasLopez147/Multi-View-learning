@@ -1,3 +1,4 @@
+package NMF
 import breeze.linalg.{DenseMatrix, sum}
 import breeze.numerics._
 
@@ -40,10 +41,12 @@ object Trainer {
           case ((num, den), (h, x)) => (num :+= x * h.t, den :+= h * h.t)
         }
       val nw = w *:* (num /:/ (w * den))
+      //for (ele <- nw.iterator)print(ele)
+      //println()
       if (i % epsEval == 0) {
         val currCost = JNMFModel(w, hs).cost(xs)
         val cmp = (cost-currCost)/currCost
-        println(s"$i: $currCost $cost $cmp")
+        //println(s"$i: $currCost $cost $cmp")
         if (cmp <= eps && i > 1) {
           None
         } else {
@@ -69,24 +72,19 @@ object Trainer {
       b
     }
   }
-
-  def clustering(jnmf: JNMFModel): (DenseMatrix[Double], Seq[Int]) = {
-    val w = jnmf.w
-    val labels = DenseVector.zeros[Int](w.rows)
-    for(i <- 0 until w.rows) {
-      val max = w(i, ::).inner.toArray.max
-      for(j <- 0 until w.cols) {
-        if(w(i, j) == max)
-          labels(i) = j+1
-      }
-    }
-    (w, labels.toArray.toSeq)
-  }
 }
 
 case class JNMFModel(w: DenseMatrix[Double], hs: Array[DenseMatrix[Double]]) {
   def inverse(): Array[DenseMatrix[Double]] = {
     hs.map(w * _)
+  }
+
+  def clustering(): (DenseMatrix[Double], Seq[Int]) = {
+    val labels = (0 until w.rows).foldLeft(List[Int]())((list_acc, row) => {
+      w(row, ::).t.toArray.zipWithIndex.maxBy(_._1)._2 :: list_acc  
+    }).reverse
+    (w, labels)
+    //(w, labels.toArray.toSeq)
   }
 
   def cost(xs: Array[DenseMatrix[Double]]): Double = {

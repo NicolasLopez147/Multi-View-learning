@@ -73,7 +73,8 @@ object LoadData {
           new InputStreamReader(
             new FileInputStream(
               //s"C:/Users/NicolasL/IdeaProjects/SNFDefinito/src/main/$c/$o"
-              s"C:/Users/NicolasL/Desktop/SNF-NMF/ModelosSNF-NMF/src/main/$c/$o"
+              
+              s"C:/Users/Jhonatan/Documents/Mis documentos/Multiview learning/GITHUB_Multi-View-learning/ModelosSNF-NMF/src/main/$c/$o"
               //s"./SNF"
             )
           )
