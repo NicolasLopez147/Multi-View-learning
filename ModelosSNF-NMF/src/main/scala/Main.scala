@@ -1,8 +1,9 @@
-import LoadData.DataMa
 import SNF.SNF
 import NMF.Trainer
 import breeze.linalg.DenseMatrix
 import breeze.numerics.round
+
+import scala.util.control.Breaks.break
 
 object Main {
   def main(args: Array[String]): Unit = {

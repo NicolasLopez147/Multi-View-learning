@@ -1,11 +1,38 @@
 package NMF
 import breeze.linalg.{DenseMatrix, sum}
 import breeze.numerics._
+<<<<<<< HEAD
 import org.apache.spark.{SparkConf, SparkContext}
 import breeze.linalg.DenseVector
+=======
+>>>>>>> ddcd947bde94df33262c86d814236b020e008340
 
 object Trainer {
-  def jnmf(xs: Array[DenseMatrix[Double]], r: Int , n: Int = 5, eps: Double = 0.00000000000001, epsEval: Int = 1): JNMFModel = {
+
+  def tratarDatos(xs: Array[DenseMatrix[Double]],remplazo: Double): Array[DenseMatrix[Double]] = {
+    for (i <- 0 until xs(0).rows) {
+      for (j <- 0 until xs(0).cols) {
+        if (xs(0)(i,j) == 0)
+          xs(0)(i,j) = remplazo
+      }
+    }
+    for (i <- 0 until xs(1).rows) {
+      for (j <- 0 until xs(1).cols) {
+        if (xs(1)(i,j) == 0) {
+          xs(1)(i,j) = remplazo
+        }
+      }
+    }
+    for (i <- 0 until xs(2).rows) {
+      for (j <- 0 until xs(2).cols) {
+        if (xs(2)(i,j) == 0)
+          xs(2)(i,j) = remplazo
+      }
+    }
+    xs
+  }
+  def jnmf(xss: Array[DenseMatrix[Double]] , r: Int = 2 ,remplazo : Double = 0.00000000001, n: Int = 50000, eps: Double = 0.001, epsEval: Int = 1): JNMFModel = {
+    val xs = tratarDatos(xss,remplazo)
     val hs0 = xs.map(x => DenseMatrix.rand[Double](r, x.cols))
     val w0 = DenseMatrix.rand[Double](xs(0).rows, r)
     val cost0 = JNMFModel(w0, hs0).cost(xs)
@@ -22,7 +49,7 @@ object Trainer {
       //for (ele <- nw.iterator)print(ele)
       //println()
       if (i % epsEval == 0) {
-        var currCost = JNMFModel(w, hs).cost(xs)
+        val currCost = JNMFModel(w, hs).cost(xs)
         val cmp = (cost-currCost)/currCost
         //println(s"$i: $currCost $cost $cmp")
         if (cmp <= eps && i > 1) {

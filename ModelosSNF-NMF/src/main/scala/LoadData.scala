@@ -1,37 +1,29 @@
+import breeze.io.CSVReader
 import breeze.linalg._
+import breeze.numerics.NaN
 
 import java.io.{FileInputStream, InputStreamReader}
-import breeze.io.CSVReader
-import breeze.numerics.NaN
-import breeze.stats.mean
-
-import scala.util.control.Breaks.break
 
 object LoadData {
 
-  private var MISSING_VALUE = NaN
-
-  private var outliers_removed: Int = 0
-  private var missing_data_imputed: Int = 0
+  private val MISSING_VALUE = 0
 
   def tratarDatos(types: Seq[String]): (DenseMatrix[Double],DenseMatrix[Double],DenseMatrix[Double]) = {
+
+    println("CARGANDO LOS DATOS")
 
     val cnts = loadRappoport(types)
     val (vista1 ,vista2, vista3 ) = igualadorEstandarizador(cnts(0)(0),cnts(0)(1),cnts(0)(2))
 
-    val vista1Final = missing_data_imputation(outlier_removal(vista1))
-    val vista2Final = missing_data_imputation(outlier_removal(vista2))
-    val vista3Final = missing_data_imputation(outlier_removal(vista3))
+    val vista1Final = outlier_removal(vista1)
+    val vista2Final = outlier_removal(vista2)
+    val vista3Final = outlier_removal(vista3)
 
+    println("DATOS CARGADOS Y TRATADOS")
     (vista1Final,vista2Final,vista3Final)
   }
 
-  /*def prueba(A: DataMa, B: DataMa, C: DataMa): (DataMa, DataMa,DataMa) = {
-    A.data(0,0)
-
-  }
-*/
-  def igualadorEstandarizador(A: DataMa, B: DataMa, C: DataMa): (DenseMatrix[Double], DenseMatrix[Double],DenseMatrix[Double]) = {
+  private def igualadorEstandarizador(A: DataMa, B: DataMa, C: DataMa): (DenseMatrix[Double], DenseMatrix[Double],DenseMatrix[Double]) = {
     val commonColNames = A.colNames.intersect(B.colNames).intersect(C.colNames)
     val filteredAData = DenseMatrix.zeros[Double](A.data.rows, commonColNames.length)
     val filteredBData = DenseMatrix.zeros[Double](B.data.rows, commonColNames.length)
@@ -50,6 +42,7 @@ object LoadData {
   }
 
   private def outlier_removal(m: DenseMatrix[Double]): DenseMatrix[Double] = {
+    var rows_removed: List[Int] = List[Int]()
     var count_missing_values = 0
     var m_res = m.copy
     for (i <- 0 until m.rows) {
@@ -59,34 +52,18 @@ object LoadData {
         }
       }
       if (count_missing_values > m.cols * 0.2) {
-        m_res = DenseMatrix.vertcat(
-          m_res(0 until (i - outliers_removed), ::),
-          m_res((i + 1 - outliers_removed) until m.rows, ::)
-        )
-        outliers_removed = outliers_removed + 1
+        rows_removed = rows_removed.appended(i)
       }
       count_missing_values = 0
+    }
+    for (i <- Range(rows_removed.length-1,0,-1)){
+      val aux = m_res.delete(rows_removed(i), Axis._0)
+      m_res = aux
     }
     m_res
   }
 
-  private def missing_data_imputation(m: DenseMatrix[Double]): DenseMatrix[Double] = {
-    val m_copy = m.copy
-    var temp: DenseMatrix[Double] = null
-    for (i <- 0 until m.rows) {
-      for (j <- 0 until m.cols) {
-        if (m(i, j) == MISSING_VALUE) {
-          temp =
-            DenseMatrix.vertcat(m(0 until i, ::), m((i + 1) until m.rows, ::))
-          m_copy(i, j) = mean(temp(::, j))
-          missing_data_imputed = missing_data_imputed + 1
-        }
-      }
-    }
-    m_copy
-  }
-
-  def loadRappoport(types: Seq[String]): Seq[Seq[DataMa]] = {
+  private def loadRappoport(types: Seq[String]): Seq[Seq[DataMa]] = {
 
     val omics = Seq("exp", "methy", "mirna")
 
@@ -113,7 +90,7 @@ object LoadData {
                      data: DenseMatrix[Double]
                    )
 
-  def csvreader(
+  private def csvreader(
                  reader: java.io.Reader,
                  separator: Char = ' ',
                  quote: Char = '"',
