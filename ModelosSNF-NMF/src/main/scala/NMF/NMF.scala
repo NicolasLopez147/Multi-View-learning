@@ -1,6 +1,9 @@
 package NMF
 import breeze.linalg.{DenseMatrix, sum}
 import breeze.numerics._
+import org.apache.spark.{SparkConf, SparkContext}
+import breeze.linalg.DenseVector
+
 
 object Trainer {
 
