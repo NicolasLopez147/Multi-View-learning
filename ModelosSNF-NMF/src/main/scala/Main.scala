@@ -1,86 +1,91 @@
 import SNF.SNF
 import NMF.Trainer
-import breeze.linalg.DenseMatrix
-import breeze.numerics.round
 
+/**
+  * This is an example of how to use the SNF model and NMF model. To compare the results of the SNF model with the NMF model,
+  * the Kernel K-Means model is used to cluster the data. The results are compared using the metrics: Silhouette, Davies-Bouldin,
+  * PSNR, Ball-Hall, Calinski-Harabasz, Hartigan and Xu.
+  */
 object Main {
+  // Number of iterations for the Kernel K-Means model
+  val iterations = 100
+  // Number of clusters for the Kernel K-Means model
+  val k = 30
+
+  /**
+    * main method
+    *
+    * @param args
+    */
   def main(args: Array[String]): Unit = {
-    // Cargar datos
+
+    // Load data
     val (expMatriz,methyMatriz,mirnaMatriz) = LoadData.tratarDatos(Seq("aml"))
 
-    // Implementar model SNF
+    // Implement SNF model
     val modeloSNF = new SNF(exp = expMatriz, methy = methyMatriz, mirna = mirnaMatriz)
-    val (matrizEstatusPromedio,expMatrizEstatus,methyMatrizEstatus,mirnaMatrizEstatus, expKernelDispersa,methyKernelDispersa,mirnaKernelDispersa) = modeloSNF.aplicarSNF(m = 0.5,porcentaje = 5,iteraciones = 20)
-    /*val W_matrix = Trainer.jnmf(Array(expMatriz.t,methyMatriz.t,mirnaMatriz.t), r = 30).w
-    val exp_w_labels = KKMeans.kernel_k_means(W_matrix, W_matrix.cols, 100)*/
 
-    val exp_est_labels = KKMeans.kernel_k_means(expMatrizEstatus, 30, 100)
-    val exp_kernel_labels = KKMeans.kernel_k_means(expKernelDispersa, 30, 100)
-    /*
-    println("Metrica \t NMF")
-    print("Silhouette \t")
-    println(Metrics.silhouette(W_matrix, exp_w_labels))
-    print("Davies-Bouldin \t")
-    println(Metrics.davies_bouldin_index(W_matrix, exp_w_labels))
-    print("PSNR \t")
-    println(Metrics.psnr(W_matrix, exp_w_labels))
-    print("Ball-Hall \t")
-    println(Metrics.ball_hall(W_matrix, exp_w_labels))
-    print("Calinski-Harabasz \t")
-    println(Metrics.calinski_harabasz(W_matrix, exp_w_labels))
-    print("Hartigan \t")
-    println(Metrics.hartigan(W_matrix, exp_w_labels))
-    print("Xu \t")
-    println(Metrics.xu(W_matrix, exp_w_labels))
-    */
-    
+    // Apply SNF
+    val (
+      matrizEstatusPromedio,
+      expMatrizEstatus,
+      methyMatrizEstatus,
+      mirnaMatrizEstatus,
+    ) = modeloSNF.aplicarSNF(m = 0.5,porcentaje = 5,iteraciones = 20)
 
+    // Apply Kernel K-Means
+    val est_prom_labels = KKMeans.kernel_k_means(matrizEstatusPromedio, k, iterations)
 
-    println("Metrica \t Kernel \t Estatus")
-    print("Silhouette \t")
-    print(Metrics.silhouette(expMatrizEstatus, exp_est_labels))
-    print("\t")
-    println(Metrics.silhouette(expKernelDispersa, exp_kernel_labels))
-    print("Davies-Bouldin \t")
-    print(Metrics.davies_bouldin_index(expMatrizEstatus, exp_est_labels))
-    print("\t")
-    println(Metrics.davies_bouldin_index(expKernelDispersa, exp_kernel_labels))
-    print("PSNR \t")
-    print(Metrics.psnr(expMatrizEstatus, exp_est_labels))
-    print("\t")
-    println(Metrics.psnr(expKernelDispersa, exp_kernel_labels))
-    print("Ball-Hall \t")
-    print(Metrics.ball_hall(expMatrizEstatus, exp_est_labels))
-    print("\t")
-    println(Metrics.ball_hall(expKernelDispersa, exp_kernel_labels))
-    print("Calinski-Harabasz \t")
-    print(Metrics.calinski_harabasz(expMatrizEstatus, exp_est_labels))
-    print("\t")
-    println(Metrics.calinski_harabasz(expKernelDispersa, exp_kernel_labels))
-    print("Hartigan \t")
-    print(Metrics.hartigan(expMatrizEstatus, exp_est_labels))
-    print("\t")
-    println(Metrics.hartigan(expKernelDispersa, exp_kernel_labels))
-    print("Xu \t")
-    print(Metrics.xu(expMatrizEstatus, exp_est_labels))
-    print("\t")
-    println(Metrics.xu(expKernelDispersa, exp_kernel_labels))
-
-
-    //Implementar modelo NMF
-    /*val modelo = Trainer.jnmf(Array(expMatriz.t,methyMatriz.t,mirnaMatriz.t),r = 50)
-    println(modelo.cost(Array(expMatriz.t,methyMatriz.t,mirnaMatriz.t)))*/
-
-
-    /*val points = DenseMatrix(
-      (1.0, 1.0),
-      (3.0, 3.0),
-      (9.0, 9.0),
-      (7.0, 7.0)
+    // Build a table with the results based on the metrics
+    val table:Seq[Seq[Any]] = Seq(
+      Seq("Metrica", "Kernel"),
+      Seq("Silhouette", Metrics.silhouette(matrizEstatusPromedio, est_prom_labels)),
+      Seq("Davies-Bouldin", Metrics.davies_bouldin_index(matrizEstatusPromedio, est_prom_labels)),
+      Seq("PSNR", Metrics.psnr(matrizEstatusPromedio, est_prom_labels)),
+      Seq("Ball-Hall", Metrics.ball_hall(matrizEstatusPromedio, est_prom_labels)),
+      Seq("Calinski-Harabasz", Metrics.calinski_harabasz(matrizEstatusPromedio, est_prom_labels)),
+      Seq("Hartigan", Metrics.hartigan(matrizEstatusPromedio, est_prom_labels)),
+      Seq("Xu", Metrics.xu(matrizEstatusPromedio, est_prom_labels)),
     )
 
-    val labels = Seq(1,1,2,2)
+    // Print the table for the SNF model
+    printTable(table);
 
-    println(Metrics.silhouette(points, labels))*/
+    // Implement NMF model
+    val NMFmodel = Trainer.jnmf(Array(expMatriz, methyMatriz, mirnaMatriz), r = k)
+
+    // Apply NMF
+    val W_matrix = NMFmodel.w
+
+    // Apply Kernel K-Means
+    val w_labels = KKMeans.kernel_k_means(W_matrix, W_matrix.cols, iterations)
+
+    // Build a table with the results based on the metrics
+    val table2:Seq[Seq[Any]] = Seq(
+      Seq("Metrica", "Kernel"),
+      Seq("Silhouette", Metrics.silhouette(W_matrix, w_labels)),
+      Seq("Davies-Bouldin", Metrics.davies_bouldin_index(W_matrix, w_labels)),
+      Seq("PSNR", Metrics.psnr(W_matrix, w_labels)),
+      Seq("Ball-Hall", Metrics.ball_hall(W_matrix, w_labels)),
+      Seq("Calinski-Harabasz", Metrics.calinski_harabasz(W_matrix, w_labels)),
+      Seq("Hartigan", Metrics.hartigan(W_matrix, w_labels)),
+      Seq("Xu", Metrics.xu(W_matrix, w_labels)),
+    )
+
+    // Print the table for the NMF model
+    printTable(table2);
+
+  }
+
+  /**
+    * Print a table with the results of the metrics
+    *
+    * @param table
+    */
+  def printTable[T](table: Seq[Seq[T]]): Unit = {
+    val colWidths = table.transpose.map(_.map(_.toString.length).max)
+    table.foreach { row =>
+      println(row.zip(colWidths).map { case (elem, width) => elem.toString.padTo(width, ' ') }.mkString(" "))
+    }
   }
 }

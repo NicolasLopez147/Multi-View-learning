@@ -2,8 +2,6 @@ import scala.math.{pow, sqrt, log}
 import breeze.linalg._
 import breeze.numerics._
 import breeze.stats._
-import SNF.SNF
-import NMF.Trainer
 
 object Metrics {
 
@@ -174,20 +172,6 @@ object Metrics {
     data.cols*log(sqrt(SSW(data, labels)/(data.cols*pow(data.rows, 2)))) + log(labels.toSet.size)
   }
 
-
-  def runtime(dataset: Seq[DenseMatrix[Double]]) = {
-    var start = System.nanoTime()
-    var result = Trainer.jnmf(dataset.toArray, dataset(0).rows)
-    var end = System.nanoTime()
-    println("JNMF Time result:")
-    println((end - start) / 1000000000.0)
-
-    /*start = System.nanoTime()
-    result = new SNF(dataset(0), dataset(1), dataset(2)).aplicarSNF(/*parametros*/)
-    end = System.nanoTime()
-    println("SNF Time result:")
-    println((end - start) / 1000000000.0)*/
-  }
 }
 
 

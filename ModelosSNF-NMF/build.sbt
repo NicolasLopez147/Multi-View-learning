@@ -2,9 +2,11 @@ ThisBuild / version := "0.1.0-SNAPSHOT"
 
 ThisBuild / scalaVersion := "2.13.10"
 
+ThisBuild / scalacOptions := Seq("-deprecation", "-unchecked")
+
 lazy val root = (project in file("."))
   .settings(
-    name := "SNFDefinito"
+    name := "MultiViewLearningProject"
   )
 libraryDependencies ++= Seq(
   "org.apache.spark" %% "spark-core" % "3.2.2",
