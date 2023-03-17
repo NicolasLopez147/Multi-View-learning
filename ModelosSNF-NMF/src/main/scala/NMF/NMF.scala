@@ -27,7 +27,8 @@ object Trainer {
           xs(2)(i,j) = remplazo
       }
     }
-    xs
+    val xss = Array(xs(0).t,xs(1).t,xs(2).t)
+    xss
   }
   def jnmf(xss: Array[DenseMatrix[Double]] , r: Int = 2 ,remplazo : Double = 0.00000000001, n: Int = 50000, eps: Double = 0.001, epsEval: Int = 1): JNMFModel = {
     val xs = tratarDatos(xss,remplazo)
