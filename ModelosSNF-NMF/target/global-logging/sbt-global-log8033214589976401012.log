@@ -1,6 +1,0 @@
-[debug] > Exec($ scala -J-Xms256m -J-Xmx512m, None, None)
-[error] Expected symbol
-[error] Not a valid command: $
-[error] $ scala -J-Xms256m -J-Xmx512m
-[error]  ^
-[debug] > Exec(idea-shell, None, None)
