@@ -1,9 +1,10 @@
 import SNF.SNF
 import NMF.Trainer
+import CCA.CCA
+
 import KKMeans.KKMeans
 import breeze.linalg.{DenseMatrix, sum}
 import breeze.numerics._
-import breeze.linalg.DenseVector
 
 /** This is an example of how to use the SNF model and NMF model. To compare the
   * results of the SNF model with the NMF model, the Kernel K-Means model is
@@ -16,8 +17,8 @@ object Main {
   val iterations = 100
   // Number of clusters for the Kernel K-Means model
   val k = 30
-
-  /** main method
+  /**
+    * main method
     *
     * @param args
     */
@@ -36,10 +37,24 @@ object Main {
     }
   }
 
-  def mainTemp(): Unit = {
-    // Load data
-    val (expMatriz, methyMatriz, mirnaMatriz) =
-      LoadData.tratarDatos(Seq("resources"))
+  def mainTemp():Unit = {
+    //Load data
+    val (expMatriz,methyMatriz,mirnaMatriz) = LoadData.tratarDatos(Seq("resources"))
+
+    // Implement Correlation Canonical Analysis CCA
+    val modeloCCA = new CCA(mirnaMatriz)
+
+    val correlationMatrix = modeloCCA.aplicarAnalisisCorrelacionCanonica()
+
+    println("\nCorrelation Matrix")
+    val table3: Seq[Seq[Any]] = Seq(
+      Seq("Corr", "u", "v"),
+      Seq("u", correlationMatrix(0, 0), correlationMatrix(0, 1)),
+      Seq("v", correlationMatrix(1, 0), correlationMatrix(1, 1))
+    )
+    //Print the table for the CCA model
+    printTable(table3)
+
 
     // Implement SNF model
     val modeloSNF =
@@ -82,7 +97,7 @@ object Main {
     )
 
     // Print the table for the SNF model
-    printTable(table);
+    printTable(table)
 
     // Implement NMF model
     val NMFmodel =
@@ -105,16 +120,19 @@ object Main {
       Seq("Hartigan", Metrics.hartigan(W_matrix, w_labels)),
       Seq("Xu", Metrics.xu(W_matrix, w_labels))
     )
-
     // Print the table for the NMF model
     printTable(table2);
+
+
+
 
   }
 
   /** Print a table with the results of the metrics
     *
     * @param table
-    */
+   */
+
   def printTable[T](table: Seq[Seq[T]]): Unit = {
     val colWidths = table.transpose.map(_.map(_.toString.length).max)
     table.foreach { row =>
