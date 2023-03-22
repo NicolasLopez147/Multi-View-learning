@@ -3,7 +3,7 @@
 .bsp
 .metals
 project/metals.sbt
-
+.scalafmt.conf
 # vs code
 .vscode
 
