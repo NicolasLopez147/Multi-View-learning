@@ -82,7 +82,6 @@ class CCA (matriz:DenseMatrix[Double]){
     val matrizT = matriz.t
     var max:Double = 0
     var correlationMatrixMax = matriz
-    var indice = 0
 
     for (i <- 5 until matrizT.cols){
       val x = matrizT(0 until matrizT.rows - 1, 0 until i)
@@ -98,10 +97,8 @@ class CCA (matriz:DenseMatrix[Double]){
       if (correlationMatrix(0,1) > max){
         max = correlationMatrix(0,1)
         correlationMatrixMax = correlationMatrix
-        indice = i
       }
     }
-    println(indice)
     correlationMatrixMax
   }
 
