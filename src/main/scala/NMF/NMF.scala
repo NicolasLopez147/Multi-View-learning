@@ -9,33 +9,6 @@ object Trainer {
       xs: Array[DenseMatrix[Double]],
       remplazo: Double
   ): Array[DenseMatrix[Double]] = {
-    for (i <- 0 until xs(0).rows) {
-      for (j <- 0 until xs(0).cols) {
-        if (xs(0)(i, j) == 0)
-          xs(0)(i, j) = remplazo
-      }
-    }
-    for (i <- 0 until xs(1).rows) {
-      for (j <- 0 until xs(1).cols) {
-        if (xs(1)(i, j) == 0) {
-          xs(1)(i, j) = remplazo
-        }
-      }
-    }
-    for (i <- 0 until xs(2).rows) {
-      for (j <- 0 until xs(2).cols) {
-        if (xs(2)(i, j) == 0)
-          xs(2)(i, j) = remplazo
-      }
-    }
-    val xss = Array(xs(0).t, xs(1).t, xs(2).t)
-    xss
-  }
-
-  def tratarDatosOpt(
-      xs: Array[DenseMatrix[Double]],
-      remplazo: Double
-  ): Array[DenseMatrix[Double]] = {
     xs.map(matrix => {
       val filledMatrix =
         matrix.mapValues(value => if (value == 0) remplazo else value)
@@ -52,7 +25,7 @@ object Trainer {
       epsEval: Int = 1
   ): JNMFModel = {
 
-    val xs = tratarDatosOpt(xss, remplazo)
+    val xs = tratarDatos(xss, remplazo)
     val hs0 = xs.map(x => DenseMatrix.rand[Double](r, x.cols))
     val w0 = DenseMatrix.rand[Double](xs(0).rows, r)
     val cost0 = JNMFModel(w0, hs0).cost(xs)

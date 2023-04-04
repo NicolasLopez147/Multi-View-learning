@@ -17,19 +17,10 @@ class CCA (matriz:DenseMatrix[Double]){
   }
 
   private def calcularMatrizCovarianza(x: DenseMatrix[Double], y: DenseMatrix[Double], mediaMatrizX: DenseMatrix[Double], mediaMatrizY: DenseMatrix[Double]): DenseMatrix[Double] = {
-    val filas = x.rows
-    val s = (x - mediaMatrizX).t * (y - mediaMatrizY)
-    for (i <- 0 until s.rows) {
-      for (j <- 0 until s.cols) {
-        s(i, j) = s(i, j) / filas
-      }
-    }
-    s
+    ((x - mediaMatrizX).t * (y - mediaMatrizY)).map(l => l/x.rows)
   }
   private def normalizarDatos(m:DenseMatrix[Double]): DenseMatrix[Double] = {
-    val avg = mean(m)
-    val dev = stddev(m)
-    (m - avg) / dev
+    (m - mean(m)) / stddev(m)
   }
 
   private def calcularMatrizCorrelacion(u:DenseMatrix[Double],v:DenseMatrix[Double]): DenseMatrix[Double] = {
@@ -42,33 +33,28 @@ class CCA (matriz:DenseMatrix[Double]){
     val covarianzaUV = abs(sum(calcularMatrizCovarianza(uNorm,vNorm,mediaMatrizU,mediaMatrizV)))
     val covarianzaVU = abs(sum(calcularMatrizCovarianza(vNorm,uNorm,mediaMatrizV,mediaMatrizU)))
 
-    val matrizCorrelacion = DenseMatrix((covarianzaU,covarianzaUV),(covarianzaVU,covarianzaV))
-    matrizCorrelacion
+    DenseMatrix((covarianzaU,covarianzaUV),(covarianzaVU,covarianzaV))
+
   }
 
   private def calcularPesos(x: DenseMatrix[Double], y: DenseMatrix[Double]): (DenseMatrix[Double], DenseMatrix[Double]) = {
     val mediaMatrizX = calcularMatrizMedia(x)
     val mediaMatrizY = calcularMatrizMedia(y)
-    val matrizCovarianzaXX = calcularMatrizCovarianza(x, x, mediaMatrizX, mediaMatrizX)
-    val matrizCovarianzaYY = calcularMatrizCovarianza(y, y, mediaMatrizY, mediaMatrizY)
-    val sigmaS = List(matrizCovarianzaXX, calcularMatrizCovarianza(x, y, mediaMatrizX, mediaMatrizY), matrizCovarianzaYY)
+
+    val sigmaS = List(calcularMatrizCovarianza(x, x, mediaMatrizX, mediaMatrizX),
+      calcularMatrizCovarianza(x, y, mediaMatrizX, mediaMatrizY),
+      calcularMatrizCovarianza(y, y, mediaMatrizY, mediaMatrizY))
+
     val matrizSigmaX: DenseMatrix[Double] = inv(sigmaS(0)) * sigmaS(1) * inv(sigmaS(2)) * sigmaS(1).t
     val matrizSigmaY: DenseMatrix[Double] = inv(sigmaS(2)) * sigmaS(1).t * inv(sigmaS(0)) * sigmaS(1)
 
-
-    val eigenValoresX = calcularEiginvalores(matrizSigmaX, matrizCovarianzaXX)
-    val eigenValoresY = calcularEiginvalores(matrizSigmaY, matrizCovarianzaYY)
-
-    (eigenValoresX, eigenValoresY)
+    (calcularEiginvalores(matrizSigmaX, sigmaS(0)), calcularEiginvalores(matrizSigmaY, sigmaS(2)))
   }
 
   private def calcularEiginvalores(matrizSigma: DenseMatrix[Double], matrizCovarianza: DenseMatrix[Double]): DenseMatrix[Double] = {
     val eigenValores = eig(matrizSigma).eigenvalues.asDenseMatrix
     val restriccion = eigenValores * matrizCovarianza * eigenValores.t
-    for (i <- 0 until eigenValores.rows) {
-      eigenValores(0, i) = eigenValores(0, i) / pow(restriccion(0, 0), 0.5)
-    }
-    eigenValores
+    eigenValores.map(x => x / pow(restriccion(0, 0), 0.5))
   }
 
   private def calcularVariablesCanonicas(datos: DenseMatrix[Double], pesos: DenseMatrix[Double]): DenseMatrix[Double] = {
